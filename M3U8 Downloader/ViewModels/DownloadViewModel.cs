@@ -235,13 +235,12 @@ namespace M3U8_Downloader.ViewModels {
             return _merged_file_path;
         }
 
-
         private async Task<string> ConvertIntoMp4Video(CancellationToken ct, string _merged_file_path) {
             ct.ThrowIfCancellationRequested();
 
             Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new System.Action(() => {
-                ProcessText01 = "Converting and processing final output video.";
-                ProcessText02 = String.Format("Merging Part {0}/{1}\nCurrent size - {2} , part size - {3}\n{4}% Completed", 1, 0, 0, 0, 0);
+                ProcessText01 = "Converting and processing final output video";
+                ProcessText02 = String.Format("{0}% Completed",0);
                 Pbar01Value = 0;
                 Pbar02Visibility = Visibility.Collapsed;
             }));
@@ -260,23 +259,22 @@ namespace M3U8_Downloader.ViewModels {
                     engine.KillProcess();
                     ct.ThrowIfCancellationRequested();
                 }
-
-
-                //progress
-               /* int pg = Convert.ToInt32(e.Progress);
-                while (pbar.CurrentTick + 1 <= pg && pbar.CurrentTick <= 100) {
-                    string msg = "Processing video to MP4" +
-                                 "\nFrame = " + e.Frame +
-                                 "\nFps = " + e.Fps +
-                                 "\nSize = " + Convert.ToDouble(e.Size) / 1024 + "Mb" +
-                                 "\nTime = " + e.Time +
-                                 "\nBitrate = " + e.Bitrate;
-                    //"\nSpeed = " + e.Speed +
-                    //"\nQuantizer = " + e.Quantizer
-                    //"\nData = " + e.Data;
-                    pbar.Tick(msg);
-                }*/
-
+                int p = Convert.ToInt32(e.Progress);
+                string msg = String.Format("Processing from ts to mp4\nFrame - {0}\nFps - {1}\nTime - {2}\nSize - {3}\nBitrate - {4}\nSpeed - {5}\nQuantizer - {6}\n{7}% Completed",
+                    e.Frame,
+                    e.Fps,
+                    e.Time,
+                    ByteSize.FromKiloBytes(Convert.ToDouble(e.Size)).MegaBytes.ToString(),
+                    e.Bitrate+ " kbit/s",
+                    e.Speed,
+                    e.Quantizer,
+                    p
+                );
+                Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new System.Action(() => {
+                    ProcessText01 = "Converting and processing final output video";
+                    ProcessText02 = msg;
+                    Pbar01Value = p;
+                }));
             };
             engine.VideoEncoded += (sender, e) => {
                 //encoding finished. do something
@@ -284,6 +282,11 @@ namespace M3U8_Downloader.ViewModels {
                     engine.KillProcess();
                     ct.ThrowIfCancellationRequested();
                 }
+                Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new System.Action(() => {
+                    ProcessText01 = "Converting and processing final output video Completed\nPlease wait the for process to complete";
+                    ProcessText02 = "...";
+                    Pbar01Value = 100;
+                }));
 
             };
             engine.ErrorReceived += (sender, e) => {
@@ -300,19 +303,23 @@ namespace M3U8_Downloader.ViewModels {
 
 
             Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new System.Action(() => {
-                ProcessText01 = "Merging Ts Part Files Completed.";
+                ProcessText01 = "Converting and processing final output video Completed.\nFinal video is ready";
                 ProcessText02 = "...";
                 Pbar01Value = 100;
             }));
             ct.ThrowIfCancellationRequested();
             await Task.Delay(50);
-            return _merged_file_path;
+            return _final_video_file_path;
         }
 
 
+        //
+        private void OnVideoDownloadCompleted() {
+            
+        }
 
         //
-        private void OnCancelation() {
+        private void OnCancelation() {  
             Pbar02Visibility = Visibility.Collapsed;
         }
 
