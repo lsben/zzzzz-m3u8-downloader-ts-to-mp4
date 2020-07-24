@@ -237,8 +237,8 @@ namespace M3U8_Downloader.ViewModels {
             ct.ThrowIfCancellationRequested();
 
             Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new System.Action(() => {
-                ProcessText01 = "Merging Ts Part Files.";
-                ProcessText02 = String.Format("Merging Part {0}/{1}\nCurrent size - {2} , part size - {3}\n{4}% Completed", 1, _ts_file_paths.Length, 0, 0, 0);
+                ProcessText01 = "Converting and processing final output video.";
+                //ProcessText02 = String.Format("Merging Part {0}/{1}\nCurrent size - {2} , part size - {3}\n{4}% Completed", 1, _ts_file_paths.Length, 0, 0, 0);
                 Pbar01Value = 0;
                 Pbar02Visibility = Visibility.Collapsed;
             }));
@@ -253,7 +253,7 @@ namespace M3U8_Downloader.ViewModels {
             ///
 
 
-            using (var output = File.Crea   te(_merged_file_path)) {
+          /*  using (var output = File.Create(_merged_file_path)) {
                 int k = 0;
                 foreach (var i_file in _ts_file_paths) {
                     k++;
@@ -267,7 +267,7 @@ namespace M3U8_Downloader.ViewModels {
                         }));
                     }
                 }
-            }
+            }*/
             Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new System.Action(() => {
                 ProcessText01 = "Merging Ts Part Files Completed.";
                 ProcessText02 = "...";

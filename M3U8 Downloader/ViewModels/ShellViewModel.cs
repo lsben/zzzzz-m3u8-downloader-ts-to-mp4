@@ -28,7 +28,7 @@ namespace M3U8_Downloader.ViewModels {
         }
 
         //
-        private string _downloadPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Output");
+        private string _downloadPath = "...";
 
         public string DownloadPath {
             get { return _downloadPath; }
@@ -115,7 +115,24 @@ namespace M3U8_Downloader.ViewModels {
             M3u8FileContent = Clipboard.GetText();
         }
 
+        //
         public void DownloadVideo() {
+            if (IsUsingPath && !File.Exists(M3u8Path)) {
+                MessageBox.Show("Please select valid m3u8 file", "M3u8 file not selected", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            if (!IsUsingPath && string.IsNullOrWhiteSpace(M3u8FileContent)) {
+                MessageBox.Show("Please enter  m3u8 file content", "Enter M3u8 file content", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            if (DownloadPath.Equals("...") || !Directory.Exists(DownloadPath)) {
+                MessageBox.Show("Please select a Download Folder", "Select Download Folder", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+
             string[] tsLinks = new string[]{};
             if (IsUsingPath) {
                 tsLinks = Extentions.getTSFileLinkListFromPath(M3u8Path);
@@ -125,7 +142,7 @@ namespace M3U8_Downloader.ViewModels {
 
 
             if(tsLinks.Length == 0) {
-                MessageBox.Show("Please enter valid m3u8 file or valid content", "Invalid Data", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                MessageBox.Show("The entered m3u8 file or m3u8 content is invalid", "Invalid Data entered", MessageBoxButton.OK, MessageBoxImage.Exclamation);
             } else {
                 _windowManager.ShowWindow(_downloadViewModel, null, null);
                 _eventAggregator.PublishOnUIThread(new DownloadInfoEvent(tsLinks, DownloadPath));
