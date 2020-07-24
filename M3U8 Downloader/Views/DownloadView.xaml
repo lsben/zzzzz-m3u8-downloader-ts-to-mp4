@@ -1,0 +1,32 @@
+﻿<Window x:Class="M3U8_Downloader.Views.DownloadView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:M3U8_Downloader.Views"
+        mc:Ignorable="d"
+        Title="DownloadView" Height="450" Width="800">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Label Content="Downloading and processing video stream" Grid.Column="0" Grid.Row="0"  FontSize="16"   Foreground="Black" FontWeight="Bold" Margin="10,10,10,10"/>
+        <Label Content="{Binding ProcessText01}" Grid.Column="0" Grid.Row="1"  FontSize="12"  Margin="10,0,10,0" FontWeight="Bold" />
+        <ProgressBar Value="{Binding Pbar01Value}" Minimum="0" Maximum="100" Grid.Column="0" Grid.Row="2" IsIndeterminate="False" Height="16" Margin="30,0,30,0"/>
+
+        <Label Content="{Binding ProcessText02}" Grid.Column="0" Grid.Row="3"  FontSize="12" Margin="10,0,10,0" />
+        <ProgressBar Value="{Binding Pbar02Value}" Minimum="0" Maximum="100" Visibility="{Binding Pbar02Visibility}" Grid.Column="0" Grid.Row="4" IsIndeterminate="False" Height="16" Margin="30,0,30,0"/>
+
+        <Button  Grid.Column="1" Grid.Row="5" Content="Cancel" Height="25" Width="100" Margin="4,4,4,20" Padding="2,2,2,2" Name="BrowseAndSetM3u8FilePath" Background="Red" BorderBrush="#FFF9E623" Foreground="White" VerticalAlignment="Bottom" />
+
+    </Grid>
+</Window>
