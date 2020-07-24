@@ -49,7 +49,7 @@
                 </Grid.RowDefinitions>
 
                 <Label Visibility="{Binding VisibilityPath}" Content="Choose m3u8 file location here" Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" FontSize="12" />
-                <TextBox Visibility="{Binding VisibilityPath}" Text="{Binding M3u8Path}" Grid.Column="0" Grid.Row="1" Height="auto"  Margin="4,4,4,4" Padding="2,2,2,2" Name="FilePathTextBox"  />
+                <TextBox Visibility="{Binding VisibilityPath}" Text="{Binding M3u8Path}"  IsEnabled="False" Grid.Column="0" Grid.Row="1" Height="auto"  Margin="4,4,4,4" Padding="2,2,2,2" Name="FilePathTextBox"  />
                 <Button Visibility="{Binding VisibilityPath}" Grid.Column="1" Grid.Row="1" Content="Browse" Height="auto" Width="auto" Margin="4,4,4,4" Padding="2,2,2,2" Name="BrowseAndSetM3u8FilePath" Background="#FFE0F386" BorderBrush="#FF8DFF04"   />
                 
                 <Label Visibility="{Binding VisibilityPaste}"  Content="Paste the m3u8 file content here" Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2" FontSize="12" />
@@ -61,7 +61,7 @@
         </Border>
 
         <Label  Content="Choose the file download location" Grid.Column="0" Grid.Row="5" Grid.ColumnSpan="6" FontSize="12" />
-        <TextBox Text="{Binding DownloadPath}" Grid.Column="0" Grid.Row="6" Grid.ColumnSpan="5" Height="auto"  Margin="4,4,4,4" Padding="2,2,2,2" Name="DownloadPathTextBox" />
+        <TextBox Text="{Binding DownloadPath}" IsEnabled="False" Grid.Column="0" Grid.Row="6" Grid.ColumnSpan="5" Height="auto"  Margin="4,4,4,4" Padding="2,2,2,2" Name="DownloadPathTextBox" />
         <Button Grid.Column="5" Grid.Row="6"  Grid.ColumnSpan="3" Content="Browse" Height="auto" Width="45" HorizontalAlignment="Left" Margin="4,4,4,4" Padding="2,2,2,2" Name="BrowseAndSetDownloadPath" Background="#FFE0F386" BorderBrush="#FF8DFF04"  />
 
         <Button Grid.Column="0" Grid.Row="7"  Grid.ColumnSpan="6" HorizontalAlignment="Center" Content="Download" Height="auto" Width="150" Margin="10,10,10,10" Padding="2,2,2,2" Name="DownloadVideo" FontSize="16" Background="#FF30C321" BorderBrush="#FFF3FF00" Foreground="Black" FontWeight="Bold" />

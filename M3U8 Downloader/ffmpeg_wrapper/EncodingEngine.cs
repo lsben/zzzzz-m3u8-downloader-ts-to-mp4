@@ -4,7 +4,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;   
+using System.Threading.Tasks;
+using System.Windows;
 
 namespace HSLDownloader_m3u8_ts.ffmpeg_wrapper {
     public class EncodingEngine {
@@ -123,7 +124,7 @@ namespace HSLDownloader_m3u8_ts.ffmpeg_wrapper {
         }
 
         private void GetStandardErrorDataReceived(object sender, DataReceivedEventArgs e) {
-
+            //MessageBox.Show(e.Data);
             //raise event        
             OnVideoEncoding(new EncodingEventArgs() {
 
@@ -142,7 +143,7 @@ namespace HSLDownloader_m3u8_ts.ffmpeg_wrapper {
 
         private void GetStandardOutputDataReceived(object sender, DataReceivedEventArgs e) {
             //Console.WriteLine(e.Data);
-
+            //MessageBox.Show(e.Data);
         }
 
 

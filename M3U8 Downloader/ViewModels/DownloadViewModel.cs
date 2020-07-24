@@ -119,14 +119,14 @@ namespace M3U8_Downloader.ViewModels {
 
         private void downloadVideo() {
             CancellationToken ct = tokenSource.Token;
-            Task t = Task.Run(async () => {
-                string[] _ts_file_paths = await DownloadTsFiles(ct);
-                string _merged_file_path = await MergeTsFiles(ct, _ts_file_paths);
-                string _final_video_path = await ConvertIntoMp4Video(ct, _merged_file_path);
-            }, ct);
-
             try {
-                t.Wait();
+                Task t = Task.Run(async () => {
+                    string[] _ts_file_paths = await DownloadTsFiles(ct);
+                    string _merged_file_path = await MergeTsFiles(ct, _ts_file_paths);
+                    string _final_video_path = await ConvertIntoMp4Video(ct, _merged_file_path);
+
+
+                }, ct);
             } catch (AggregateException) {
                 OnCancelation();
             } catch (Exception e) {
@@ -136,11 +136,10 @@ namespace M3U8_Downloader.ViewModels {
 
         private async Task<string[]> DownloadTsFiles(CancellationToken ct) {
             ct.ThrowIfCancellationRequested();
-
             if (!Directory.Exists(_temp_folder_path)) {
                 DirectoryInfo di = Directory.CreateDirectory(_temp_folder_path);
             } else {
-                Directory.Delete(_temp_folder_path);
+                Directory.Delete(_temp_folder_path,true);
                 DirectoryInfo di = Directory.CreateDirectory(_temp_folder_path);
             }
 
@@ -166,7 +165,7 @@ namespace M3U8_Downloader.ViewModels {
                 i++;
                 using (WebClient client = new WebClient()) {
                     client.DownloadProgressChanged += (s, e) => {
-                        string ratio = ByteSize.FromBytes(e.BytesReceived).KiloBytes.ToString() + "/" + ByteSize.FromBytes(e.TotalBytesToReceive).KiloBytes.ToString();
+                        string ratio = ByteSize.FromBytes(e.BytesReceived).ToString("KB") + "/" + ByteSize.FromBytes(e.TotalBytesToReceive).ToString("KB");
                         Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new System.Action(() => {
                             ProcessText02 = String.Format("Downloading Part {0}\n{1} Downloaded\n{2}% Completed\nLink = {3}", i, ratio, e.ProgressPercentage,link);
                             Pbar02Value = e.ProgressPercentage;
@@ -180,7 +179,7 @@ namespace M3U8_Downloader.ViewModels {
                         }));
                     };
                     ct.ThrowIfCancellationRequested();
-                    await client.DownloadFileTaskAsync(link, _ts_file_paths[i]);
+                    await client.DownloadFileTaskAsync(link, _ts_file_paths[i-1]);
                 }
             }
 
@@ -219,7 +218,7 @@ namespace M3U8_Downloader.ViewModels {
                         input.CopyTo(output);
                         int p = (int)Math.Round((double)(100 * k) / _ts_file_paths.Length);
                         Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new System.Action(() => {
-                            ProcessText02 = String.Format("Merging Part {0}/{1}\nCurrent size - {2} , part size - {3}\n{4}% Completed", k, _ts_file_paths.Length, ByteSize.FromBytes(output.Length).MegaBytes.ToString(), ByteSize.FromBytes(output.Length).KiloBytes.ToString(), p);
+                            ProcessText02 = String.Format("Merging Part {0}/{1}\nCurrent size - {2} , part size - {3}\n{4}% Completed", k, _ts_file_paths.Length, ByteSize.FromBytes(output.Length).ToString("MB"), ByteSize.FromBytes(input.Length).ToString("KB"), p);
                             Pbar01Value = p;
                         }));
                     }
@@ -246,11 +245,11 @@ namespace M3U8_Downloader.ViewModels {
             }));
 
     
-            string _final_video_file_name = "Final_Mp4_output_video" + DateTime.Now.ToString("_yyyy_MM_dd_HH_mm_ss") + ".mp4";
+            string _final_video_file_name = "Final Mp4 Video " + DateTime.Now.ToString("(yyyy-MM-dd) (HH-mm-ss)") + ".mp4";
             string _final_video_file_path = Path.Combine(_download_folder_path, _final_video_file_name);
             string _ffmpeg_path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Ffmpeg\\ffmpeg.exe");
 
-            string args = String.Format("-i {0} -c:v libx264 -c:a aac {1}", _merged_file_path, _final_video_file_path);
+            string args = String.Format("-i \"{0}\" -c:v libx264 -c:a aac \"{1}\"", _merged_file_path, _final_video_file_path);
             EncodingEngine engine = new EncodingEngine(_ffmpeg_path);
             EncodingJob job = new EncodingJob();
             job.Arguments = args;
@@ -260,16 +259,55 @@ namespace M3U8_Downloader.ViewModels {
                     ct.ThrowIfCancellationRequested();
                 }
                 int p = Convert.ToInt32(e.Progress);
-                string msg = String.Format("Processing from ts to mp4\nFrame - {0}\nFps - {1}\nTime - {2}\nSize - {3}\nBitrate - {4}\nSpeed - {5}\nQuantizer - {6}\n{7}% Completed",
+
+                StringBuilder sb = new StringBuilder("Processing from ts to mp4\nFrame - ");
+                sb.Append(e.Frame);
+                sb.Append("\nFps - ");
+                if (string.IsNullOrWhiteSpace(e.Fps)) {
+                    sb.Append(e.Fps);
+                } else {
+                    sb.Append(Convert.ToDouble(e.Fps) / 10);
+                }
+                sb.Append("\nTime - ");
+                sb.Append(e.Time);
+                sb.Append("\nSize - ");
+                if (string.IsNullOrWhiteSpace(e.Size)) {
+                    sb.Append(e.Size);
+                } else {
+                    sb.Append(ByteSize.FromKiloBytes(Convert.ToDouble(e.Size)).ToString("MB"));
+                }
+                sb.Append("\nBitrate - ");
+                sb.Append(e.Bitrate);
+                sb.Append("kbit/s\nSpeed - ");
+                sb.Append(e.Speed);
+                sb.Append("x\nQuantizer - ");
+                sb.Append(e.Quantizer);
+                sb.Append("\n");
+                sb.Append(p);
+                sb.Append("% Completed");
+
+                //ByteSize.FromKiloBytes(Convert.ToInt32(e.Size)).ToString("MB")
+
+                string msg = sb.ToString();
+                /*try {
+                    msg = String.Format("Processing from ts to mp4\nFrame - {0}\nFps - {1}\nTime - {2}\nSize - {3}\nBitrate - {4}\nSpeed - {5}\nQuantizer - {6}\n{7}% Completed",
                     e.Frame,
                     e.Fps,
                     e.Time,
-                    ByteSize.FromKiloBytes(Convert.ToDouble(e.Size)).MegaBytes.ToString(),
-                    e.Bitrate+ " kbit/s",
+                    ByteSize.FromKiloBytes(Convert.ToDouble(e.Size)).ToString("MB"),
+                    e.Bitrate + " kbit/s",
                     e.Speed,
                     e.Quantizer,
                     p
-                );
+                    );
+                } catch (System.FormatException) {
+                    msg = "nullllllllllllllllllllllll";
+                }*/
+
+
+                //MessageBox.Show(msg);
+
+                
                 Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new System.Action(() => {
                     ProcessText01 = "Converting and processing final output video";
                     ProcessText02 = msg;
@@ -284,7 +322,7 @@ namespace M3U8_Downloader.ViewModels {
                 }
                 Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new System.Action(() => {
                     ProcessText01 = "Converting and processing final output video Completed\nPlease wait the for process to complete";
-                    ProcessText02 = "...";
+                    ProcessText02 = "This may take few minutes";
                     Pbar01Value = 100;
                 }));
 
@@ -325,7 +363,7 @@ namespace M3U8_Downloader.ViewModels {
 
         //
         private void OnErrorDownloading(Exception e) {
-            
+            MessageBox.Show(e.Message + "\n\n\n\n" + e.ToString());
         }
 
     }
