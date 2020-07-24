@@ -250,6 +250,9 @@ namespace M3U8_Downloader.ViewModels {
                 File.Delete(_merged_file_path);
             }
 
+            ///
+
+
             using (var output = File.Crea   te(_merged_file_path)) {
                 int k = 0;
                 foreach (var i_file in _ts_file_paths) {
