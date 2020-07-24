@@ -1,5 +1,6 @@
 ﻿using ByteSizeLib;
 using Caliburn.Micro;
+using HSLDownloader_m3u8_ts.ffmpeg_wrapper;
 using M3U8_Downloader.EventModels;
 using System;
 using System.Collections.Generic;
@@ -127,7 +128,9 @@ namespace M3U8_Downloader.ViewModels {
             try {
                 t.Wait();
             } catch (AggregateException) {
-                onCancelation();
+                OnCancelation();
+            } catch (Exception e) {
+                OnErrorDownloading(e);
             }
         }
 
@@ -238,36 +241,64 @@ namespace M3U8_Downloader.ViewModels {
 
             Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new System.Action(() => {
                 ProcessText01 = "Converting and processing final output video.";
-                //ProcessText02 = String.Format("Merging Part {0}/{1}\nCurrent size - {2} , part size - {3}\n{4}% Completed", 1, _ts_file_paths.Length, 0, 0, 0);
+                ProcessText02 = String.Format("Merging Part {0}/{1}\nCurrent size - {2} , part size - {3}\n{4}% Completed", 1, 0, 0, 0, 0);
                 Pbar01Value = 0;
                 Pbar02Visibility = Visibility.Collapsed;
             }));
 
+    
+            string _final_video_file_name = "Final_Mp4_output_video" + DateTime.Now.ToString("_yyyy_MM_dd_HH_mm_ss") + ".mp4";
+            string _final_video_file_path = Path.Combine(_download_folder_path, _final_video_file_name);
+            string _ffmpeg_path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Ffmpeg\\ffmpeg.exe");
+
+            string args = String.Format("-i {0} -c:v libx264 -c:a aac {1}", _merged_file_path, _final_video_file_path);
+            EncodingEngine engine = new EncodingEngine(_ffmpeg_path);
+            EncodingJob job = new EncodingJob();
+            job.Arguments = args;
+            engine.VideoEncoding += (sender, e) => {
+                if (ct.IsCancellationRequested) {
+                    engine.KillProcess();
+                    ct.ThrowIfCancellationRequested();
+                }
 
 
-            string _final_video_path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Final_Merge_Output.ts");
+                //progress
+               /* int pg = Convert.ToInt32(e.Progress);
+                while (pbar.CurrentTick + 1 <= pg && pbar.CurrentTick <= 100) {
+                    string msg = "Processing video to MP4" +
+                                 "\nFrame = " + e.Frame +
+                                 "\nFps = " + e.Fps +
+                                 "\nSize = " + Convert.ToDouble(e.Size) / 1024 + "Mb" +
+                                 "\nTime = " + e.Time +
+                                 "\nBitrate = " + e.Bitrate;
+                    //"\nSpeed = " + e.Speed +
+                    //"\nQuantizer = " + e.Quantizer
+                    //"\nData = " + e.Data;
+                    pbar.Tick(msg);
+                }*/
+
+            };
+            engine.VideoEncoded += (sender, e) => {
+                //encoding finished. do something
+                if (ct.IsCancellationRequested) {
+                    engine.KillProcess();
+                    ct.ThrowIfCancellationRequested();
+                }
+
+            };
+            engine.ErrorReceived += (sender, e) => {
+                OnErrorDownloading(e.GetException());
+            };
+            //engine.Exited += (sender, e) => {
+            //};
+            ct.ThrowIfCancellationRequested();
+            engine.DoWork(job);
+
             if (File.Exists(_merged_file_path)) {
                 File.Delete(_merged_file_path);
             }
 
-            ///
 
-
-          /*  using (var output = File.Create(_merged_file_path)) {
-                int k = 0;
-                foreach (var i_file in _ts_file_paths) {
-                    k++;
-                    ct.ThrowIfCancellationRequested();
-                    using (var input = File.OpenRead(i_file)) {
-                        input.CopyTo(output);
-                        int p = (int)Math.Round((double)(100 * k) / _ts_file_paths.Length);
-                        Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new System.Action(() => {
-                            ProcessText02 = String.Format("Merging Part {0}/{1}\nCurrent size - {2} , part size - {3}\n{4}% Completed", k, _ts_file_paths.Length, ByteSize.FromBytes(output.Length).MegaBytes.ToString(), ByteSize.FromBytes(output.Length).KiloBytes.ToString(), p);
-                            Pbar01Value = p;
-                        }));
-                    }
-                }
-            }*/
             Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new System.Action(() => {
                 ProcessText01 = "Merging Ts Part Files Completed.";
                 ProcessText02 = "...";
@@ -281,8 +312,13 @@ namespace M3U8_Downloader.ViewModels {
 
 
         //
-        private void onCancelation() {
+        private void OnCancelation() {
             Pbar02Visibility = Visibility.Collapsed;
+        }
+
+        //
+        private void OnErrorDownloading(Exception e) {
+            
         }
 
     }

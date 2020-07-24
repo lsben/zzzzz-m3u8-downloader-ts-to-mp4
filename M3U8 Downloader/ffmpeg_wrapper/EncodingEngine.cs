@@ -30,6 +30,15 @@ namespace HSLDownloader_m3u8_ts.ffmpeg_wrapper {
 
         }
 
+        public void KillProcess() {
+            try {
+                this._process.Kill();
+                this._process.Dispose();
+            } catch (Exception) {
+
+            }
+        }
+
         public void DoWork(EncodingJob encodingJob) {
 
             this._process.EnableRaisingEvents = true;
@@ -51,7 +60,6 @@ namespace HSLDownloader_m3u8_ts.ffmpeg_wrapper {
             this._process.StartInfo.RedirectStandardInput = true;
             this._process.StartInfo.CreateNoWindow = true;
             this._process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-
 
             this._process.Start();
             this._process.BeginErrorReadLine();
