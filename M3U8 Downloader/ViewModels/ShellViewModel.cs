@@ -11,20 +11,23 @@ using System.Threading.Tasks;
 using System.Windows;
 
 namespace M3U8_Downloader.ViewModels {
-    public class ShellViewModel : Screen {
+    public class ShellViewModel : Screen , IHandle<DownloadCompleteEvent> {
 
         private readonly IEventAggregator _eventAggregator;
         private DownloadViewModel _downloadViewModel;
+        private ResultViewModel _resultViewModel;
         private IWindowManager _windowManager;
 
         //
         public ShellViewModel() {
         }
 
-        public ShellViewModel(IEventAggregator eventAggregator, DownloadViewModel downloadViewModel, IWindowManager windowManager) {
+        public ShellViewModel(IEventAggregator eventAggregator, DownloadViewModel downloadViewModel, ResultViewModel resultViewModel, IWindowManager windowManager) {
             _eventAggregator = eventAggregator;
             _downloadViewModel = downloadViewModel;
             _windowManager = windowManager;
+            _resultViewModel = resultViewModel;
+            _eventAggregator.Subscribe(this);
         }
 
         //
@@ -32,7 +35,7 @@ namespace M3U8_Downloader.ViewModels {
 
         public string DownloadPath {
             get { return _downloadPath; }
-            set { 
+            set {
                 _downloadPath = value;
                 NotifyOfPropertyChange(() => DownloadPath);
             }
@@ -65,7 +68,7 @@ namespace M3U8_Downloader.ViewModels {
 
         public bool IsUsingPath {
             get { return _isUsingPath; }
-            set { 
+            set {
                 _isUsingPath = value;
                 NotifyOfPropertyChange(() => VisibilityPath);
                 NotifyOfPropertyChange(() => VisibilityPaste);
@@ -92,7 +95,7 @@ namespace M3U8_Downloader.ViewModels {
             using (var fbd = new System.Windows.Forms.FolderBrowserDialog()) {
                 fbd.Description = "Select the download folder ";
                 System.Windows.Forms.DialogResult result = fbd.ShowDialog();
-                if(result == System.Windows.Forms.DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath)) {
+                if (result == System.Windows.Forms.DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath)) {
                     DownloadPath = fbd.SelectedPath;
                 }
             }
@@ -100,12 +103,12 @@ namespace M3U8_Downloader.ViewModels {
 
         //
         public void BrowseAndSetM3u8FilePath() {
-            OpenFileDialog dlg =  new OpenFileDialog();
+            OpenFileDialog dlg = new OpenFileDialog();
             dlg.DefaultExt = ".m3u8";
             dlg.Filter = "M3U8 Files (*.m3u8) |*.m3u8";
             dlg.Title = "Select the m3u8 file";
             Nullable<bool> result = dlg.ShowDialog();
-            if(result == true) {
+            if (result == true) {
                 M3u8Path = dlg.FileName;
             }
         }
@@ -114,6 +117,19 @@ namespace M3U8_Downloader.ViewModels {
         public void PasteM3u8FileContent() {
             M3u8FileContent = Clipboard.GetText();
         }
+
+        //
+        private bool _isDownloading = false;
+
+        public bool IsDownloading {
+            get { return _isDownloading; }
+            set {
+                _isDownloading = value;
+                NotifyOfPropertyChange(() => DownloadEnable);
+            }
+        }
+
+        public bool DownloadEnable => !IsDownloading;
 
         //
         public void DownloadVideo() {
@@ -144,10 +160,10 @@ namespace M3U8_Downloader.ViewModels {
             if(tsLinks.Length == 0) {
                 MessageBox.Show("The entered m3u8 file or m3u8 content is invalid", "Invalid Data entered", MessageBoxButton.OK, MessageBoxImage.Exclamation);
             } else {
+                IsDownloading = true;
                 _windowManager.ShowWindow(_downloadViewModel, null, null);
                 _eventAggregator.PublishOnUIThread(new DownloadInfoEvent(tsLinks, DownloadPath));
             }
-
 
             //App.Current.MainWindow.Hide();
             //ActivateItem(_downloadViewModel);
@@ -157,7 +173,34 @@ namespace M3U8_Downloader.ViewModels {
             //_eventAggregator.PublishOnUIThread("Hello World");
         }
 
-        
+        public void Handle(DownloadCompleteEvent message) {
+            IsDownloading = false;
+            if (message.IsDownloadCancelled) {
+                MessageBox.Show("Download Cancelled", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+            } else if(message.IsDownloadSuccessful){
+                OnDownloadSuccess(message.DownloadedFilePath);
+            } else {
+                OnDownloadError(message.ErrorMsg);
+            }
+        }
 
+        private void OnDownloadSuccess(string path) {
+            _windowManager.ShowWindow(_resultViewModel, null, null);
+            _eventAggregator.PublishOnUIThread(new ShowResultEvent(path));
+        }
+
+        private void OnDownloadError(string errorMsg) {
+            MessageBox.Show("Error occured while downloading\nError message - "+errorMsg, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+
+        protected override void OnActivate() {
+            _eventAggregator.Subscribe(this);
+            base.OnActivate();
+        }
+
+        protected override void OnDeactivate(bool close) {
+            _eventAggregator.Unsubscribe(this);
+            base.OnDeactivate(close);
+        }
     }       
 }

@@ -64,7 +64,7 @@
         <TextBox Text="{Binding DownloadPath}" IsEnabled="False" Grid.Column="0" Grid.Row="6" Grid.ColumnSpan="5" Height="auto"  Margin="4,4,4,4" Padding="2,2,2,2" Name="DownloadPathTextBox" />
         <Button Grid.Column="5" Grid.Row="6"  Grid.ColumnSpan="3" Content="Browse" Height="auto" Width="45" HorizontalAlignment="Left" Margin="4,4,4,4" Padding="2,2,2,2" Name="BrowseAndSetDownloadPath" Background="#FFE0F386" BorderBrush="#FF8DFF04"  />
 
-        <Button Grid.Column="0" Grid.Row="7"  Grid.ColumnSpan="6" HorizontalAlignment="Center" Content="Download" Height="auto" Width="150" Margin="10,10,10,10" Padding="2,2,2,2" Name="DownloadVideo" FontSize="16" Background="#FF30C321" BorderBrush="#FFF3FF00" Foreground="Black" FontWeight="Bold" />
+        <Button IsEnabled="{Binding DownloadEnable}" Grid.Column="0" Grid.Row="7"  Grid.ColumnSpan="6" HorizontalAlignment="Center" Content="Download" Height="auto" Width="150" Margin="10,10,10,10" Padding="2,2,2,2" Name="DownloadVideo" FontSize="16" Background="#FF30C321" BorderBrush="#FFF3FF00" Foreground="Black" FontWeight="Bold" />
 
        
 

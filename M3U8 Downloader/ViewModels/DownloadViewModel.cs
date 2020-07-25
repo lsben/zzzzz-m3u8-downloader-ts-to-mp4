@@ -116,15 +116,20 @@ namespace M3U8_Downloader.ViewModels {
         private string[] _ts_file_links = new string[] { };
         private string _download_folder_path = "";
         private CancellationTokenSource tokenSource = new CancellationTokenSource();
+        private bool _canClose = false;
 
         private void downloadVideo() {
             CancellationToken ct = tokenSource.Token;
             try {
                 Task t = Task.Run(async () => {
-                    string[] _ts_file_paths = await DownloadTsFiles(ct);
-                    string _merged_file_path = await MergeTsFiles(ct, _ts_file_paths);
-                    string _final_video_path = await ConvertIntoMp4Video(ct, _merged_file_path);
-
+                    try {
+                        string[] _ts_file_paths = await DownloadTsFiles(ct);
+                        string _merged_file_path = await MergeTsFiles(ct, _ts_file_paths);
+                        string _final_video_path = await ConvertIntoMp4Video(ct, _merged_file_path);
+                        OnVideoDownloadCompleted(_final_video_path);
+                    } catch (Exception e) {
+                        OnErrorDownloading(e);
+                    }
 
                 }, ct);
             } catch (AggregateException) {
@@ -351,20 +356,54 @@ namespace M3U8_Downloader.ViewModels {
         }
 
 
-        //
-        private void OnVideoDownloadCompleted() {
-            
+        public override void CanClose(Action<bool> callback) {
+            callback(_canClose);
+            if (! _canClose) {
+                CancelDownload();
+            }
+        }
+
+
+        private void CancelDownload() {
+            MessageBoxResult result = MessageBox.Show("Dow you want to cancel the download?", "Confirmation", MessageBoxButton.YesNo);
+            switch (result) {
+                case MessageBoxResult.Yes:
+                    OnCancelation();
+                    break;
+                case MessageBoxResult.No:
+                    break;
+            }
         }
 
         //
-        private void OnCancelation() {  
+        private void OnCancelation() {
+            tokenSource.Cancel();
             Pbar02Visibility = Visibility.Collapsed;
+            Pbar01Value = 0;
+            ProcessText01 = "Cancelling the download\nPlease wait...";
+            DownloadCompleteEvent msg = new DownloadCompleteEvent(false, true, "", "");
+            SendResultAndClose(msg);
         }
 
+
+        //
+        private void OnVideoDownloadCompleted(string _final_video_path) {
+            DownloadCompleteEvent msg = new DownloadCompleteEvent(true, false, _final_video_path, "");
+            SendResultAndClose(msg);
+        }
+
+      
         //
         private void OnErrorDownloading(Exception e) {
-            MessageBox.Show(e.Message + "\n\n\n\n" + e.ToString());
+            DownloadCompleteEvent msg = new DownloadCompleteEvent(false,false,"",e.Message);
+            SendResultAndClose(msg);
         }
 
+
+        private void SendResultAndClose(DownloadCompleteEvent _event) {
+            _eventAggregator.PublishOnUIThread(_event);
+            _canClose = true;
+            this.TryClose();
+        }
     }
 }

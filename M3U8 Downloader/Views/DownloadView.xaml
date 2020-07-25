@@ -26,7 +26,7 @@
         <Label Content="{Binding ProcessText02}" Grid.Column="0" Grid.Row="3"  FontSize="12" Margin="10,0,10,0" />
         <ProgressBar Value="{Binding Pbar02Value}" Minimum="0" Maximum="100" Visibility="{Binding Pbar02Visibility}" Grid.Column="0" Grid.Row="4" IsIndeterminate="False" Height="16" Margin="30,0,30,0"/>
 
-        <Button  Grid.Column="1" Grid.Row="5" Content="Cancel" Height="25" Width="100" Margin="4,4,4,20" Padding="2,2,2,2" Name="BrowseAndSetM3u8FilePath" Background="Red" BorderBrush="#FFF9E623" Foreground="White" VerticalAlignment="Bottom" />
+        <Button  Grid.Column="1" Grid.Row="5" Content="Cancel" Height="25" Width="100" Margin="4,4,4,20" Padding="2,2,2,2" Name="CancelDownload" Background="Red" BorderBrush="#FFF9E623" Foreground="White" VerticalAlignment="Bottom" />
 
     </Grid>
 </Window>
