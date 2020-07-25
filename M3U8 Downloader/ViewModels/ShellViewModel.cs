@@ -133,6 +133,7 @@ namespace M3U8_Downloader.ViewModels {
 
         //
         public void DownloadVideo() {
+
             if (IsUsingPath && !File.Exists(M3u8Path)) {
                 MessageBox.Show("Please select valid m3u8 file", "M3u8 file not selected", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;

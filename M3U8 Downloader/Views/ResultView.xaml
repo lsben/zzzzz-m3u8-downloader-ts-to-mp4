@@ -7,6 +7,25 @@
         mc:Ignorable="d"
         Title="ResultView" Height="450" Width="800">
     <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+
+        <Label Grid.Row="0" HorizontalAlignment="Center"  VerticalAlignment="Bottom" Content="Video Stream downloaded successfully as mp4 video" Margin="10" Foreground="#FF34B604" FontWeight="Bold" FontFamily="Consolas" FontSize="18" />
+        <Label Grid.Row="1" HorizontalAlignment="Center"  VerticalAlignment="Center" Content="Path for the downloaded video" Margin="10,5,10,0" Foreground="#FF010200" />
+        <TextBox Grid.Row="2" HorizontalAlignment="center"  VerticalAlignment="center" TextAlignment="Center" TextWrapping="Wrap" Text="{Binding DownlodedFilePath}" Margin="10,0" BorderBrush="{x:Null}" Foreground="#FF072AC1" Background="{x:Null}" SelectionBrush="#FFAFDCFF" IsReadOnly="True"/>
         
+        <Button Grid.Row="3" HorizontalAlignment="center"  VerticalAlignment="center" Content="Copy Path"  Margin="10" Background="#FFE9F13A" BorderBrush="#FFD30505" Foreground="Black" Name="CopyPath" />
+        <Button Grid.Row="4" HorizontalAlignment="center"  VerticalAlignment="center" Content="Play Video"  Margin="10" Background="#FFE9F13A" BorderBrush="#FFD30505" Foreground="Black" Name="PlayVideo" />
+        <Button Grid.Row="5" HorizontalAlignment="center"  VerticalAlignment="Top" Content="Open File Location" Margin="10" Background="#FFE9F13A" BorderBrush="#FFD30505" Foreground="Black" Name="OpenFileLocation" />
     </Grid>
 </Window>
