@@ -20,8 +20,12 @@ namespace M3U8_Downloader.Utils {
             List<string> result = new List<string>();
             foreach (string line in lines) {
                 if (!line.Contains("#EXT") && line.Contains("http")) {
-                    //Parsing link.  remove it if needed
-                    result.Add(parseLink(line));
+                    //Parsing link if from databox lk
+                    if (line.Contains("cdn2.video.lk.databoxtech.com")) {
+                        result.Add(parseLinkForDatboxSite(line));
+                    } else {
+                        result.Add(line);
+                    }
                 }
             }
             return result.ToArray();
@@ -32,7 +36,7 @@ namespace M3U8_Downloader.Utils {
         }
 
 
-        public static string parseLink(string link) {
+        public static string parseLinkForDatboxSite(string link) {
             if (!link.Contains("_unsec")) {
                 List<string> list = new List<string>(link.Split('/'));
                 list.Insert(list.Count - 1, "_unsec");
