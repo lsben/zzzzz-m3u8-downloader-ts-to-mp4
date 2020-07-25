@@ -202,5 +202,6 @@ namespace M3U8_Downloader.ViewModels {
             _eventAggregator.Unsubscribe(this);
             base.OnDeactivate(close);
         }
+
     }       
 }
