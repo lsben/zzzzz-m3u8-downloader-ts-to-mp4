@@ -32,6 +32,12 @@ namespace M3U8_Downloader.ViewModels {
             // Handling event here.
             _ts_file_links = downloadInfoEvent.TsFileLinks;
             _download_folder_path = downloadInfoEvent.DownloadPath;
+            ProcessText01 = "...";
+            ProcessText02 = "...";
+            Pbar02Visibility = Visibility.Collapsed;
+            Pbar01Value = 0;
+            Pbar02Value = 0;
+
             downloadVideo();
     }
 
@@ -83,7 +89,7 @@ namespace M3U8_Downloader.ViewModels {
             get { return _pbar02Visibility; }
             set {
                 _pbar02Visibility = value;
-                NotifyOfPropertyChange(() => _pbar02Visibility);
+                NotifyOfPropertyChange(() => Pbar02Visibility);
             }
         }
 
@@ -119,6 +125,7 @@ namespace M3U8_Downloader.ViewModels {
         private bool _canClose = false;
 
         private void downloadVideo() {
+            tokenSource = new CancellationTokenSource();
             CancellationToken ct = tokenSource.Token;
             try {
                 Task t = Task.Run(async () => {
@@ -261,7 +268,15 @@ namespace M3U8_Downloader.ViewModels {
             engine.VideoEncoding += (sender, e) => {
                 if (ct.IsCancellationRequested) {
                     engine.KillProcess();
-                    ct.ThrowIfCancellationRequested();
+                    try {
+                        ct.ThrowIfCancellationRequested();
+                        if (File.Exists(_final_video_file_path)) {
+                            File.Delete(_final_video_file_path);
+                        }
+                    } catch (Exception) {
+
+                    }
+                    
                 }
                 int p = Convert.ToInt32(e.Progress);
 
@@ -323,7 +338,14 @@ namespace M3U8_Downloader.ViewModels {
                 //encoding finished. do something
                 if (ct.IsCancellationRequested) {
                     engine.KillProcess();
-                    ct.ThrowIfCancellationRequested();
+                    try {
+                        ct.ThrowIfCancellationRequested();
+                        if (File.Exists(_final_video_file_path)) {
+                            File.Delete(_final_video_file_path);
+                        }
+                    } catch (Exception) {
+
+                    }
                 }
                 Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new System.Action(() => {
                     ProcessText01 = "Converting and processing final output video Completed\nPlease wait the for process to complete";
@@ -350,7 +372,13 @@ namespace M3U8_Downloader.ViewModels {
                 ProcessText02 = "...";
                 Pbar01Value = 100;
             }));
-            ct.ThrowIfCancellationRequested();
+
+            if (ct.IsCancellationRequested) {
+                if (File.Exists(_final_video_file_path)) {
+                    File.Delete(_final_video_file_path);
+                }
+                ct.ThrowIfCancellationRequested();
+            }
             await Task.Delay(50);
             return _final_video_file_path;
         }
@@ -364,7 +392,7 @@ namespace M3U8_Downloader.ViewModels {
         }
 
 
-        private void CancelDownload() {
+        public void CancelDownload() {
             MessageBoxResult result = MessageBox.Show("Dow you want to cancel the download?", "Confirmation", MessageBoxButton.YesNo);
             switch (result) {
                 case MessageBoxResult.Yes:
@@ -388,6 +416,7 @@ namespace M3U8_Downloader.ViewModels {
 
         //
         private void OnVideoDownloadCompleted(string _final_video_path) {
+            if (tokenSource.IsCancellationRequested) return;
             DownloadCompleteEvent msg = new DownloadCompleteEvent(true, false, _final_video_path, "");
             SendResultAndClose(msg);
         }
@@ -395,15 +424,16 @@ namespace M3U8_Downloader.ViewModels {
       
         //
         private void OnErrorDownloading(Exception e) {
+            if (tokenSource.IsCancellationRequested) return;
             DownloadCompleteEvent msg = new DownloadCompleteEvent(false,false,"",e.Message);
             SendResultAndClose(msg);
         }
 
 
         private void SendResultAndClose(DownloadCompleteEvent _event) {
-            _eventAggregator.PublishOnUIThread(_event);
             _canClose = true;
             this.TryClose();
+            _eventAggregator.PublishOnUIThread(_event);
         }
     }
 }
