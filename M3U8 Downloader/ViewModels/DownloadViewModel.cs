@@ -216,7 +216,7 @@ namespace M3U8_Downloader.ViewModels {
 
 
 
-            string _merged_file_path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Final_Merge_Output.ts");
+            string _merged_file_path = Path.Combine(_temp_folder_path, "Final_Merge_Output.ts");
             if (File.Exists(_merged_file_path)) {
                 File.Delete(_merged_file_path);
             }
@@ -362,9 +362,10 @@ namespace M3U8_Downloader.ViewModels {
             ct.ThrowIfCancellationRequested();
             engine.DoWork(job);
 
-            if (File.Exists(_merged_file_path)) {
+            /*if (File.Exists(_merged_file_path)) {
                 File.Delete(_merged_file_path);
-            }
+            }*/
+            Directory.Delete(_temp_folder_path, true);
 
 
             Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new System.Action(() => {

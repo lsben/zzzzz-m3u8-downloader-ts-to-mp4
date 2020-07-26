@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:M3U8_Downloader.Views"
         mc:Ignorable="d"
-        Title="LSFOEVER" Height="600" Width="800" MinWidth="500" MinHeight="400" Background="#FFECECEC">
+        Title="LSFOREVER" Height="600" Width="800" MinWidth="500" MinHeight="400" Background="#FFECECEC">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
